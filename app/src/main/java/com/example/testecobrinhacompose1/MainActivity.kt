@@ -14,6 +14,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -21,6 +22,14 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Shapes
 import androidx.compose.material3.Text
@@ -66,7 +75,7 @@ fun JogoCobrinha(game: Game, modifier: Modifier = Modifier) {
     Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
         Spacer(modifier = Modifier.height(30.dp))
         QuadroJogo(estadoJogo = game.estadoJogo)
-        Text(text = "----------------------------------------------------------")
+        BotoesSeta()
     }
 }
 
@@ -96,6 +105,46 @@ fun QuadroJogo(estadoJogo: EstadoJogo,modifier: Modifier = Modifier){
         }
     }
 }
+
+@Composable
+fun BotoesSeta(modifier: Modifier = Modifier){
+    val tamBotao = Modifier.size(64.dp)
+    Column(modifier = modifier.padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally) {
+        Button(onClick = { /*TODO*/ },
+            modifier = tamBotao,
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            Icon(imageVector = androidx.compose.material.icons.Icons.Filled.KeyboardArrowUp
+                , contentDescription = "Cima")
+        }
+        Row{
+            Button(onClick = { /*TODO*/ },
+                modifier = tamBotao,
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Icon(imageVector = androidx.compose.material.icons.Icons.Filled.ArrowBack
+                    ,contentDescription = "Esquerda")
+            }
+            Spacer(modifier = tamBotao)
+            Button(onClick = { /*TODO*/ },
+                modifier = tamBotao,
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Icon(imageVector = androidx.compose.material.icons.Icons.Filled.ArrowForward
+                    , contentDescription = "Direita")
+            }
+        }
+        Button(onClick = { /*TODO*/ },
+            modifier = tamBotao,
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            Icon(imageVector = androidx.compose.material.icons.Icons.Filled.KeyboardArrowDown
+                , contentDescription = "Baixo")
+        }
+    }
+}
+
 
 data class EstadoJogo(
     val comida:Pair <Int,Int>,
