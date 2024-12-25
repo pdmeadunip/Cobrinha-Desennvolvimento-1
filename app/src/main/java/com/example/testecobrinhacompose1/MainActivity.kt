@@ -3,6 +3,7 @@ package com.example.testecobrinhacompose1
 import android.R
 import android.R.attr.maxWidth
 import android.R.attr.name
+import android.R.attr.value
 import android.R.attr.x
 import android.annotation.SuppressLint
 import android.os.Bundle
@@ -34,6 +35,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Shapes
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -43,7 +45,13 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
 import com.example.testecobrinhacompose1.ui.theme.TesteCobrinhaCompose1Theme
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -72,9 +80,13 @@ fun Greeting(game: Game=Game(), modifier: Modifier = Modifier) {
 
 @Composable
 fun JogoCobrinha(game: Game, modifier: Modifier = Modifier) {
+    val estadoJogo = game.estadoJogo.collectAsState(initial = null)
     Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
         Spacer(modifier = Modifier.height(30.dp))
-        QuadroJogo(estadoJogo = game.estadoJogo)
+        estadoJogo.value?.let{
+            QuadroJogo(it)
+        }
+
         BotoesSeta()
     }
 }
@@ -151,8 +163,50 @@ data class EstadoJogo(
     val cobra:List<Pair<Int,Int>>
 )
 
-class Game(private val scope:CoroutineScope=CoroutineScope(scope.coroutineContext)){
-    val estadoJogo = EstadoJogo(Pair(2,5), listOf(Pair(7,7),Pair(7,6),Pair(7,5)))
+class Game(private val scope:CoroutineScope=CoroutineScope(scope.coroutineContext)) {
+    private val mutex: Mutex = Mutex()
+    private val estadoMutavel: MutableStateFlow<EstadoJogo> =
+        MutableStateFlow(EstadoJogo(comida = Pair(5, 5), cobra = listOf(Pair(7, 7))))
+    val estadoJogo: Flow<EstadoJogo> = estadoMutavel
+    var direcao = Pair(1, 0)
+        set(value) {
+            scope.launch {
+                mutex.withLock {
+                    field = value
+                }
+            }
+        }
+    init {
+        scope.launch {
+            var tamanhoCobra = 4
+            while (true){
+                delay(500)
+                estadoMutavel.update {
+                    val novaCabeca : Pair<Int,Int> =
+                          it.cobra.first().let {
+                               poz:Pair<Int, Int> -> mutex.withLock {
+                                        Pair(
+                                                (poz.first+direcao.first+ QTD_QUADRADOS)% QTD_QUADRADOS,
+                                                (poz.second+direcao.second+QTD_QUADRADOS)%QTD_QUADRADOS
+                                            )
+                               }
+                          }
+                    it.copy(
+                        comida = if(novaCabeca == it.comida){
+                            Pair(
+                                (0 until QTD_QUADRADOS).random(),
+                                (0 until QTD_QUADRADOS).random()
+                            )
+                        }else
+                            it.comida,
+                                  cobra = listOf(novaCabeca)+it.cobra.take(tamanhoCobra-1)
+                    )
+                }
+
+
+            }
+        }
+    }
 
 
     companion object{
